@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { EnvConfigService } from './shared/services/env-config.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { ShopifyModule } from './modules/shopify/shopify.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthModule } from './modules/auth/auth.module';
     UserModule,
     SharedModule,
     AuthModule,
+    ShopifyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

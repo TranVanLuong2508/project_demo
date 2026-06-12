@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class EnvConfigService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   private get(key: string): string {
     const value = this.configService.get<string>(key);
@@ -79,6 +79,16 @@ export class EnvConfigService {
       database: this.getString('DB_DATABASE'),
       logging: this.getBoolean('ENABLE_ORM_LOGS'),
       synchronize: this.getBoolean('ENABLE_SYCHORIZE_DB'),
+    };
+  }
+
+  get shopifyConfig() {
+    return {
+      shopDomain: this.getString('SHOPIFY_SHOP_DOMAIN'),
+      accessToken: this.getString('SHOPIFY_ACCESS_TOKEN'),
+      apiKey: this.getString('SHOPIFY_API_KEY'),
+      apiSecret: this.getString('SHOPIFY_API_SECRET'),
+      apiVersion: this.getString('SHOPIFY_API_VERSION'),
     };
   }
 }
