@@ -5,9 +5,7 @@ import { FulfillOrderDto } from './dtos/fulfill-order.dto';
 
 @Controller('shopify')
 export class ShopifyController {
-  constructor(
-    private readonly shopifyService: ShopifyService,
-  ) { }
+  constructor(private readonly shopifyService: ShopifyService) { }
 
   @Get('test-connection')
   @Public()
@@ -25,7 +23,7 @@ export class ShopifyController {
 
   @Get('rest/order/get-by-id')
   @Public()
-  async getDetailOrderById(@Query("orderId") orderId: string) {
+  async getDetailOrderById(@Query('orderId') orderId: string) {
     return this.shopifyService.getOrderById(orderId);
   }
 
@@ -35,6 +33,16 @@ export class ShopifyController {
     @Param('shopifyOrderId') shopifyOrderId: string,
     @Body() dto: FulfillOrderDto,
   ) {
-    return this.shopifyService.fulfillOrder(shopifyOrderId, dto.trackingNumber, dto.trackingCompany);
+    return this.shopifyService.fulfillOrder(
+      shopifyOrderId,
+      dto.trackingNumber,
+      dto.trackingCompany,
+    );
+  }
+
+  @Get('graph/orders')
+  @Public()
+  async getAllOrderWithGraph() {
+    return this.shopifyService.getAllOrderWithGraph();
   }
 }
