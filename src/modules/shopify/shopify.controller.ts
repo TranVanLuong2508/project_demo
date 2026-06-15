@@ -45,4 +45,10 @@ export class ShopifyController {
   async getAllOrderWithGraph() {
     return this.shopifyService.getAllOrderWithGraph();
   }
+
+  @Get('graph/order/get-by-id')
+  @Public()
+  async getDetailOrderByIdWithGraph(@Query('orderId') orderId: string) {
+    return this.shopifyService.getOrderByIdWithGraph(orderId);
+  }
 }

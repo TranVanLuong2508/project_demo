@@ -152,6 +152,52 @@ export class ShopifyService {
     }
   }
 
+  async getOrderByIdWithGraph(orderId: string) {
+    try {
+      const graphqlId = orderId.includes('gid://')
+        ? orderId
+        : `gid://shopify/Order/${orderId}`;
+
+      const response = await this.graphQlClient.request(
+        `
+      query getOrder($id: ID!) {
+        order(id: $id) {
+          id
+          name
+          createdAt
+          updatedAt
+          displayFinancialStatus
+          displayFulfillmentStatus
+          totalPriceSet {
+            shopMoney {
+              amount
+              currencyCode
+            }
+          }
+        }
+      }
+      `,
+        {
+          variables: {
+            id: graphqlId,
+          },
+        },
+      );
+
+      const order = response.data?.order ?? null;
+
+      return {
+        success: true,
+        data: order,
+      };
+    } catch (error: any) {
+      this.handleShopifyError(
+        error,
+        'GraphQL: Failed to fetch order by ID',
+      );
+    }
+  }
+
   async fulfillOrder(
     orderId: string,
     trackingNumber: string,
