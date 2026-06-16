@@ -87,56 +87,6 @@ export class ShopifyService {
     }
   }
 
-  async getAllOrderWithGraph(limit: number = 50) {
-    try {
-      const response = await this.graphQlClient.request(
-        `
-      query getOrders($limit: Int!) {
-        orders(first: $limit, query: "status:any") {
-          edges {
-            node {
-              id
-              name
-              createdAt
-              updatedAt
-              displayFinancialStatus
-              displayFulfillmentStatus
-              totalPriceSet {
-                shopMoney {
-                  amount
-                  currencyCode
-                }
-              }
-            }
-          }
-        }
-      }
-      `,
-        {
-          variables: {
-            limit,
-          },
-        },
-      );
-
-      const orders =
-        response.data?.orders?.edges?.map(
-          (edge: any) => edge.node,
-        ) ?? [];
-
-      return {
-        success: true,
-        count: orders.length,
-        data: response,
-      };
-    } catch (error: any) {
-      this.handleShopifyError(
-        error,
-        'GraphQL: Failed to fetch orders',
-      );
-    }
-  }
-
   async getOrderById(orderId: string) {
     try {
       const response = await this.restClient.get({
@@ -152,51 +102,6 @@ export class ShopifyService {
     }
   }
 
-  async getOrderByIdWithGraph(orderId: string) {
-    try {
-      const graphqlId = orderId.includes('gid://')
-        ? orderId
-        : `gid://shopify/Order/${orderId}`;
-
-      const response = await this.graphQlClient.request(
-        `
-      query getOrder($id: ID!) {
-        order(id: $id) {
-          id
-          name
-          createdAt
-          updatedAt
-          displayFinancialStatus
-          displayFulfillmentStatus
-          totalPriceSet {
-            shopMoney {
-              amount
-              currencyCode
-            }
-          }
-        }
-      }
-      `,
-        {
-          variables: {
-            id: graphqlId,
-          },
-        },
-      );
-
-      const order = response.data?.order ?? null;
-
-      return {
-        success: true,
-        data: order,
-      };
-    } catch (error: any) {
-      this.handleShopifyError(
-        error,
-        'GraphQL: Failed to fetch order by ID',
-      );
-    }
-  }
 
   async fulfillOrder(
     orderId: string,
@@ -289,7 +194,165 @@ export class ShopifyService {
 
   //======================= GRAPHQL =======================
 
-  private handleShopifyError(error: any, defaultMessage: string): never {
+  async getAllOrderWithGraph(limit: number = 50) {
+    try {
+      const response = await this.graphQlClient.request(
+        `
+      query getOrders($limit: Int!) {
+        orders(first: $limit, query: "status:any") {
+          edges {
+            node {
+              id
+              name
+              createdAt
+              updatedAt
+              displayFinancialStatus
+              displayFulfillmentStatus
+              totalPriceSet {
+                shopMoney {
+                  amount
+                  currencyCode
+                }
+              }
+            }
+          }
+        }
+      }
+      `,
+        {
+          variables: {
+            limit,
+          },
+        },
+      );
+
+      const orders =
+        response.data?.orders?.edges?.map((edge: any) => edge.node) ?? [];
+
+      return {
+        success: true,
+        count: orders.length,
+        data: orders,
+      };
+    } catch (error: any) {
+      this.handleShopifyError(error, 'GraphQL: Failed to fetch orders');
+    }
+  }
+
+  async getOrderByIdWithGraph(orderId: string) {
+    try {
+      const graphqlId = orderId.includes('gid://')
+        ? orderId
+        : `gid://shopify/Order/${orderId}`;
+
+      const response = await this.graphQlClient.request(
+        `
+      query getOrder($id: ID!) {
+        order(id: $id) {
+          id
+          name
+          createdAt
+          updatedAt
+          displayFinancialStatus
+          displayFulfillmentStatus
+          totalPriceSet {
+            shopMoney {
+              amount
+              currencyCode
+            }
+          }
+        }
+      }
+      `,
+        {
+          variables: {
+            id: graphqlId,
+          },
+        },
+      );
+
+      const order = response.data?.order ?? null;
+
+      return {
+        success: true,
+        data: order,
+      };
+    } catch (error: any) {
+      this.handleShopifyError(error, 'GraphQL: Failed to fetch order by ID');
+    }
+  }
+
+
+  async updateShipmentGraphQL(
+    fulfillmentId: string,
+    trackingNumber: string,
+    trackingCompany: string,
+  ) {
+    try {
+      const response = await this.graphQlClient.request(
+        `
+      mutation fulfillmentTrackingInfoUpdate(
+        $fulfillmentId: ID!,
+        $trackingInfoInput: FulfillmentTrackingInput!,
+        $notifyCustomer: Boolean
+      ) {
+        fulfillmentTrackingInfoUpdate(
+          fulfillmentId: $fulfillmentId
+          trackingInfoInput: $trackingInfoInput
+          notifyCustomer: $notifyCustomer
+        ) {
+          fulfillment {
+            id
+            status
+            trackingInfo {
+              number
+              company
+              url
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+      `,
+        {
+          variables: {
+            fulfillmentId,
+            trackingInfoInput: {
+              number: trackingNumber,
+              company: trackingCompany,
+            },
+            notifyCustomer: true,
+          },
+        },
+      );
+
+      const result =
+        response.data.fulfillmentTrackingInfoUpdate;
+
+      if (result.userErrors.length > 0) {
+        throw new Error(
+          JSON.stringify(result.userErrors),
+        );
+      }
+
+      return {
+        success: true,
+        data: result.fulfillment,
+      };
+    } catch (error) {
+      this.handleShopifyError(
+        error,
+        'GraphQL: Failed to update shipment',
+      );
+    }
+  }
+
+  private handleShopifyError(error: any, defaultMessage: string) {
+
+    console.log("Error from shopify API handleError: ", error)
     if (error instanceof BadRequestException) {
       throw error;
     }

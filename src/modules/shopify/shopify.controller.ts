@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, ParseIntPipe } from '@nestjs/common';
 import { ShopifyService } from './shopify.service';
 import { Public } from 'src/decorators/customize';
 import { FulfillOrderDto } from './dtos/fulfill-order.dto';
@@ -40,10 +40,12 @@ export class ShopifyController {
     );
   }
 
+  // --- GRAPH API ENDPOINTS ---
+
   @Get('graph/orders')
   @Public()
-  async getAllOrderWithGraph() {
-    return this.shopifyService.getAllOrderWithGraph();
+  async getAllOrderWithGraph(@Query('limit', ParseIntPipe) limit: number) {
+    return this.shopifyService.getAllOrderWithGraph(limit);
   }
 
   @Get('graph/order/get-by-id')
