@@ -1,10 +1,10 @@
 import { createParamDecorator, ExecutionContext, SetMetadata } from '@nestjs/common';
 
-//Public
+//   @Public() Decorator to make a route public (without token)
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
-//User
+//   @User() Decorator to get user from request
 export const User = createParamDecorator((data: string, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user;
@@ -12,5 +12,6 @@ export const User = createParamDecorator((data: string, ctx: ExecutionContext) =
     return data ? user?.[data] : user;
 });
 
+//   @SkipCheckPermission() Decorator to skip check role (RBAC)
 export const IS_PUBLIC_PERMISSION = 'isPublicPermission';
 export const SkipCheckPermission = () => SetMetadata(IS_PUBLIC_PERMISSION, true);

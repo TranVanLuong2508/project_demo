@@ -1,30 +1,25 @@
 export class OrderDetailResponseDto {
-    // Order info
     id: string;
     orderNumber: number;
-    name: string;                    // "#1009"
+    name: string;
     confirmationNumber: string;
     createdAt: string;
     updatedAt: string;
 
-    // Status
-    financialStatus: string;         // "paid", "pending", "refunded"
-    fulfillmentStatus: string | null; // "fulfilled", "partial", null
+    financialStatus: string;
+    fulfillmentStatus: string | null;
 
-    // Price
     totalPrice: string;
     subtotalPrice: string;
     totalTax: string;
     totalShippingPrice: string;
     currency: string;
 
-    // Customer
     customer: {
         id: string;
         email: string;
     } | null;
 
-    // Địa chỉ
     shippingAddress: {
         firstName: string;
         lastName: string;
@@ -36,7 +31,6 @@ export class OrderDetailResponseDto {
         phone: string;
     } | null;
 
-    // Sản phẩm
     lineItems: {
         id: string;
         title: string;
@@ -48,7 +42,6 @@ export class OrderDetailResponseDto {
         requiresShipping: boolean;
     }[];
 
-    // Giao hàng
     fulfillments: {
         id: string;
         status: string;
@@ -62,7 +55,6 @@ export class OrderDetailResponseDto {
     static fromShopify(raw: any): OrderDetailResponseDto {
         const dto = new OrderDetailResponseDto();
 
-        // Order info
         dto.id = String(raw.id);
         dto.orderNumber = raw.order_number;
         dto.name = raw.name;
@@ -70,24 +62,20 @@ export class OrderDetailResponseDto {
         dto.createdAt = raw.created_at;
         dto.updatedAt = raw.updated_at;
 
-        // Status
         dto.financialStatus = raw.financial_status;
         dto.fulfillmentStatus = raw.fulfillment_status ?? null;
 
-        // Price
         dto.totalPrice = raw.total_price;
         dto.subtotalPrice = raw.subtotal_price;
         dto.totalTax = raw.total_tax;
         dto.totalShippingPrice = raw.total_shipping_price_set?.shop_money?.amount ?? '0.00';
         dto.currency = raw.currency;
 
-        // Customer
         dto.customer = raw.customer ? {
             id: String(raw.customer.id),
             email: raw.customer.email,
         } : null;
 
-        // Shipping address
         dto.shippingAddress = raw.shipping_address ? {
             firstName: raw.shipping_address.first_name,
             lastName: raw.shipping_address.last_name,
